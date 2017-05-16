@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+
+<head> @include('./header.html', { "title": "首页" }) </head>
+
+<body>
+    <div class="row">
+        <div id="example">
+          <hello-world-component></hello-world-component>
+        </div>
+        <script src="dist/js/lib/vue/vue.min.js"></script>
+        <script src="dist/js/lib/jquery/jquery-1.11.3.min.js"></script>
+        @include('./components/hello-world/hello-world.html')
+        <script src="components/hello-world/hello-world.js"></script>
+        <script>
+          new Vue({
+              el: '#example',
+          })
+        </script>
+</body>
+
+</html>
