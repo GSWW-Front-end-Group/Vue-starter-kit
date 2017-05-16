@@ -31,6 +31,7 @@ var htmlSrc = 'src/*.html',
     fontSrc = 'src/dist/css/font/**/*',
     fontDst = 'assets/dist/css/font',
     cssSrc = ['src/dist/css/**/*.css','src/components/**/*.css'],
+    csslibSrc = 'src/dist/csslib/**/*.css',
     cssDst = 'assets/dist/css',
     imgSrc = 'src/dist/img/**/*',
     imgDst = 'assets/dist/img',
@@ -49,7 +50,6 @@ gulp.task('html', ['css'], function() {
             prefix: '@',
             basepath: '@file'
         }))
-      .pipe(changed(htmlDst))
       .pipe(htmlbeautify({
               "indent_size": 4,
               "indent_char": " ",
@@ -81,7 +81,7 @@ gulp.task('lib', function() {
         .pipe(gulp.dest(libDst));
 });
 
-gulp.task('components', function() {
+gulp.task('components', ['html'] ,function() {
     gulp.src(componentsSrc)
         .pipe(changed(componentsDst))
         .pipe(gulp.dest(componentsDst));
@@ -124,9 +124,39 @@ gulp.task('css', function() {
         // }));
 });
 
+gulp.task('csslib', function() {
+    gulp.src(csslibSrc)
+        .pipe(changed(cssDst))
+        .pipe(plumber())
+        .pipe(sourcemaps.init())
+        .pipe(postcss([
+            require('precss'),
+        ]))
+        .pipe(postcss([
+            require('postcss-display-inline-block'),
+        ]))
+        .pipe(postcss([
+            require('autoprefixer'),
+        ]))
+        .pipe(postcss([
+            require('postcss-easysprites')({
+                imagePath: '../img',
+                spritePath: './assets/dist/img'
+            })
+        ]))
+        .pipe(concat('_common.css'))
+        .pipe(sourcemaps.write('./'))
+        .pipe(gulp.dest(cssDst))
+        .pipe(bsc.reload({
+            stream: true
+        }));
+        // .pipe(bsc.stream({
+        //     match: "**/*.css"
+        // }));
+});
+
 // 图片处理(未开启)
 gulp.task('images', function() {
-
     gulp.src(imgSrc)
         // .pipe(imagemin({
         //  optimizationLevel: 5, //类型：Number  默认：3  取值范围：0-7（优化等级）
@@ -164,7 +194,7 @@ gulp.task('clean', function(cb) {
 
 // 默认任务 清空图片、样式、js并重建 运行语句 gulp
 gulp.task('default', ['clean'], function() {
-    gulp.start('lib', 'components', 'font', 'images', 'css', 'html' ,'js');
+    gulp.start('lib', 'components', 'font', 'images', 'css','csslib', 'html' ,'js');
 });
 
 //使用connect启动一个Web服务器
@@ -194,6 +224,7 @@ gulp.task('connect', function() {
 gulp.task('watch', ['default', 'connect'], function() {
     // 监听css
     gulp.watch(cssSrc, ['css']);
+    gulp.watch(csslibSrc, ['csslib']);
     // 监听模板
     gulp.watch(componentsSrc, ['components']);
     // 监听html
